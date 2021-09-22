@@ -1,0 +1,5 @@
+FROM /home/sibitendaharriet/airflow/dags
+USER root
+RUN curl -sSL https://get.docker.com/ | sh
+RUN pip install --upgrade pip && \
+    pip install docker==20.10.7

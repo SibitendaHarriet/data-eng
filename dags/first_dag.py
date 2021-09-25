@@ -1,22 +1,36 @@
-import airflow
+from datetime import timedelta
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
-from airflow.utils.dates import days_ago
+from airflow.utils.dates import datetime
+from airflow.utils.dates import timedelta
 
 default_args = {
-    'owner': 'sibitenda harriet',
-    'start_date': days_ago(1)
-    }
+    'owner': 'me',
+    'depends_on_past': False,
+    'start_date': datetime(2021, 10, 21),
+    'email': ['nkarietn@gmail.com'],
+    'email_on_failure': True,
+    'email_on_retry': True,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5)
+}
+dag = DAG(
+    'dbt_dag',
+    default_args=default_args,
+    description='An Airflow DAG to invoke simple dbt commands',
+    schedule_interval=timedelta(days=1),
+)
 
-# Defining the DAG using Context Manager
-with DAG(
-        'extract-meeting-activities',
-        default_args=default_args,
-        schedule_interval=None,
-        ) as dag:
-        t1 = BashOperator(
-                task_id = 'extract_metadata_from_text',
-                bash_command = 'C:\Users\DELL\airflow-tutorial\first-workflow\extract_metadata.py',
-        )
+dbt_run = BashOperator(
+    task_id='dbt_run',
+    bash_command='dbt run',
+    dag=dag
+)
 
-       # t1 >>  # Defining the task dependencies
+dbt_test = BashOperator(
+    task_id='dbt_test',
+    bash_command='dbt test',
+    dag=dag
+)
+
+dbt_run >> dbt_test
